@@ -51,15 +51,14 @@ def Invertible1x1Conv(inputs, channels, reverse=False, name="invertible1x1conv")
         
 def WaveNet(samples, local_conditions, n_in_channels, lc_channels, n_layers=8,
             residual_channels=256, skip_channels=256, kernel_size=3,
-            use_weight_normalization=False, name="wavenet"):
+            use_weight_normalization=True, name="wavenet"):
     with tf.variable_scope(name):
         #pre processing
-        outputs = tf.layers.dense(samples, units=residual_channels)
-        '''
-        w_s = create_variable('w_s', [1, n_in_channels, residual_channels])
-        b_s = create_bias_variable('b_s', [residual_channels])
+        w_s = create_variable('w_start', [1, n_in_channels, residual_channels])
+        b_s = create_bias_variable('b_start', [residual_channels])
+        if use_weight_normalization:
+           w_s = weight_normalization(w_s, 'w_start_g')
         outputs = tf.nn.bias_add(tf.nn.conv1d(samples, w_s, 1, 'SAME'), b_s)
-        '''
 
         skip_outputs_list = []
         
@@ -74,10 +73,10 @@ def WaveNet(samples, local_conditions, n_in_channels, lc_channels, n_layers=8,
         skip_outputs = sum(skip_outputs_list)
         
         # post processing
-        w_e = create_variable('w_e', [1, skip_channels, n_in_channels * 2])
-        b_e = create_bias_variable('b_e', [n_in_channels * 2])
+        w_e = create_variable('w_end', [1, skip_channels, n_in_channels * 2])
+        b_e = create_bias_variable('b_end', [n_in_channels * 2])
         if use_weight_normalization:
-            w_e = weight_normalization(w_e, 'w_e_g')
+            w_e = weight_normalization(w_e, 'w_end_g')
         outputs = tf.nn.bias_add(tf.nn.conv1d(skip_outputs, w_e, 1, 'SAME'), b_e)
        
         '''
@@ -101,12 +100,12 @@ def causal_dilated_conv1d(samples, local_conditions, dilation, lc_channels,
     assert (kernel_size % 2 == 1)
     input = samples
     with tf.variable_scope("dilated_conv1d_{}".format((str(dilation)))):
-        w_s = create_variable("w_g", 
+        w_g = create_variable("w_g", 
                               [kernel_size, residual_channels, 2 * residual_channels])
-        b_s = create_bias_variable('b_g', [2 * residual_channels])
+        b_g = create_bias_variable('b_g', [2 * residual_channels])
         if use_weight_normalization:
-            w_s = weight_normalization(w_s, "w_s_g")
-        samples = causal_conv(samples, w_s, dilation, kernel_size)
+            w_g = weight_normalization(w_g, "w_g_g")
+        samples = tf.nn.bias_add(causal_conv(samples, w_g, dilation, kernel_size), b_g)
         
         #process local condition
         w_c = create_variable('w_c', [1, lc_channels, 2 * residual_channels])
