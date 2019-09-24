@@ -100,12 +100,12 @@ def causal_dilated_conv1d(samples, local_conditions, dilation, lc_channels,
     assert (kernel_size % 2 == 1)
     input = samples
     with tf.variable_scope("dilated_conv1d_{}".format((str(dilation)))):
-        w_g = create_variable("w_g", 
+        w_s = create_variable("w_s", 
                               [kernel_size, residual_channels, 2 * residual_channels])
-        b_g = create_bias_variable('b_g', [2 * residual_channels])
+        b_s = create_bias_variable('b_s', [2 * residual_channels])
         if use_weight_normalization:
-            w_g = weight_normalization(w_g, "w_g_g")
-        samples = tf.nn.bias_add(causal_conv(samples, w_g, dilation, kernel_size), b_g)
+            w_s = weight_normalization(w_s, "w_s_g")
+        samples = tf.nn.bias_add(causal_conv(samples, w_s, dilation, kernel_size), b_s)
         
         #process local condition
         w_c = create_variable('w_c', [1, lc_channels, 2 * residual_channels])
