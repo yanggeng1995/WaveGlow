@@ -79,19 +79,6 @@ def WaveNet(samples, local_conditions, n_in_channels, lc_channels, n_layers=8,
             w_e = weight_normalization(w_e, 'w_end_g')
         outputs = tf.nn.bias_add(tf.nn.conv1d(skip_outputs, w_e, 1, 'SAME'), b_e)
        
-        '''
-        #log_s = alpha * tanh(logs) + beta, helpful for training stability
-
-        log_s = outputs[:, :, 0::2]
-        shift = outputs[:, :, 1::2] 
-        rescale = tf.get_variable("rescale", [],
-                      initializer=tf.constant_initializer(1.))
-        scale_shift = tf.get_variable("scale_shift", [],
-                      initializer=tf.constant_initializer(-3.))
-        log_s = tf.tanh(log_s) * rescale + scale_shift
-
-        return log_s, shift
-        ''' 
         return outputs[:, :, :n_in_channels], outputs[:, :, n_in_channels:]
             
 def causal_dilated_conv1d(samples, local_conditions, dilation, lc_channels,
@@ -108,12 +95,12 @@ def causal_dilated_conv1d(samples, local_conditions, dilation, lc_channels,
         samples = tf.nn.bias_add(causal_conv(samples, w_s, dilation, kernel_size), b_s)
         
         #process local condition
-        w_c = create_variable('w_c', [1, lc_channels, 2 * residual_channels])
-        b_c = create_bias_variable('b_c', [2 * residual_channels])
+        w_lc = create_variable('w_lc', [1, lc_channels, 2 * residual_channels])
+        b_lc = create_bias_variable('b_lc', [2 * residual_channels])
         if use_weight_normalization:
-            w_c = weight_normalization(w_c, "w_c_g")
+            w_lc = weight_normalization(w_lc, "w_lc_g")
         local_conditions = tf.nn.bias_add(
-            tf.nn.conv1d(local_conditions, w_c, 1, 'SAME'), b_c)
+            tf.nn.conv1d(local_conditions, w_lc, 1, 'SAME'), b_lc)
         
         out = samples + local_conditions
         filter = tf.nn.tanh(out[:, :, :residual_channels])
