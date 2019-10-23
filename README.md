@@ -28,5 +28,4 @@ $ python generate.py --lc_dir="data/test/mel" --out_dir="samples" --restore_from
 ```
 
 ## Notes
-* You can try https://github.com/yanggeng1995/WaveGlow/blob/13da8c330a94defcd96f997827decbdb68c13b68/models/modules.py#L84~#L95， may be it is helpful for training stability
 * baseline model is trained using data form here(https://weixinxcxdb.oss-cn-beijing.aliyuncs.com/gwYinPinKu/BZNSYP.rar)
