@@ -2,7 +2,7 @@
 A Tensorflow implementation of the WaveGlow: A Flow-based Generative Network for Speech Synthesis(
 https://arxiv.org/abs/1811.00002)
 
-<div align=center>![](./images/waveglow.jpg)</div>
+[](./images/waveglow.jpg)
 
 ## Preparing data
 
